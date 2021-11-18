@@ -15,15 +15,51 @@ const insertDepartment = (department_name) => {
     [department_name],
     (error, results) => {
       if (error) console.log({ error: error });
+      else console.log("department added!");
     }
   );
 };
-insertDepartment("Engineering");
 
-// simple query
-connection.query("SELECT * FROM `department`", function (err, results, fields) {
-  console.log(results); // results contains rows returned by server
+const insertRole = (role_name, department_id, salary) => {
+  console.log("attempting to insert role");
+  connection.query(
+    "INSERT INTO role (title, department_id, salary) VALUES (?,?,?)",
+    [role_name, department_id, salary],
+    (error, results) => {
+      if (error) console.log({ error: error });
+      else console.log("role added");
+    }
+  );
+};
+
+const getDepartments = () => {
+  return connection
+    .promise()
+    .execute("SELECT * FROM `department`")
+    .then((result) => {
+      const rows = result[0];
+      const cols = result[1];
+
+      return rows;
+    });
+};
+const getRoles = () => {
+  return connection
+    .promise()
+    .execute("SELECT * FROM `role`")
+    .then((result) => {
+      const rows = result[0];
+      const cols = result[1];
+
+      return rows;
+    });
+};
+
+getRoles().then((depts) => {
+  console.log(depts);
 });
+
+// insertDepartment("Engineering");
 
 // with placeholder
 // connection.query(
@@ -33,3 +69,110 @@ connection.query("SELECT * FROM `department`", function (err, results, fields) {
 //     console.log(results);
 //   }
 // );
+
+("use strict");
+const inquirer = require("inquirer");
+
+const mainPrompt = () => {
+  inquirer
+    .prompt({
+      type: "list",
+      name: "action",
+      message: "What do you want to do?",
+      choices: [
+        "View all employees",
+        "Add an employee",
+        "Update employee role",
+        "View all roles",
+        "Add Role",
+        "View all departments",
+        "Add department",
+      ],
+    })
+    .then((answers) => {
+      if (answers.action === "Add department") {
+        promptAddDepartment();
+      }
+      if (answers.action === "Add Role") {
+        promptAddRole();
+      }
+      if (answers.action === "View all departments") {
+        getDepartments().then((depts) => {
+          console.log(depts);
+          mainPrompt();
+        });
+      }
+      if (answers.action === "View all roles") {
+        getRoles().then((depts) => {
+          console.log(depts);
+          mainPrompt();
+        });
+      }
+      // inquirer.prompt({
+      //   type: "list",
+      //   name: "beverage",
+      //   message: "And your favorite beverage?",
+      //   choices: ["Pepsi", "Coke", "7up", "Mountain Dew", "Red Bull"],
+      //   });
+    });
+};
+
+mainPrompt();
+
+const promptAddRole = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "role",
+        message: "Which role do you wish to add?",
+      },
+      {
+        type: "number",
+        name: "salary",
+        message: "What is the remuneration for this role?",
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "Which department do you wish to add?",
+        choices: function () {
+          [
+            {
+              name: "engineering",
+              value: 1,
+            },
+          ];
+          return getDepartments().then((depts) => {
+            return depts.map((d) => {
+              return {
+                name: d.department_name,
+                value: d.id,
+              };
+            });
+          });
+        },
+      },
+    ])
+    .then((answers) => {
+      console.log(answers);
+      insertRole(answers.role, answers.department, answers.salary);
+      mainPrompt();
+    });
+};
+
+const promptAddDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "department",
+        message: "What is the department's name",
+      },
+    ])
+    .then((answers) => {
+      insertDepartment(answers.department);
+
+      mainPrompt();
+    });
+};

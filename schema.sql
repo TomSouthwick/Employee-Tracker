@@ -9,7 +9,7 @@ CREATE TABLE department (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE position (
+CREATE TABLE `role` (
     id INT AUTO_INCREMENT NOT NULL,
      PRIMARY KEY (id),
     title VARCHAR(30),
