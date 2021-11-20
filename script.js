@@ -96,6 +96,9 @@ const mainPrompt = () => {
       if (answers.action === "Add Role") {
         promptAddRole();
       }
+      if (answers.action === "Add Employee") {
+        promptAddEmployee();
+      }
       if (answers.action === "View all departments") {
         getDepartments().then((depts) => {
           console.log(depts);
@@ -118,6 +121,49 @@ const mainPrompt = () => {
 };
 
 mainPrompt();
+
+const promptAddEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "first name",
+        message: "What is the employee's first name?",
+      },
+      {
+        type: "input",
+        name: "first name",
+        message: "What is the employee's last name?",
+      },
+      {
+        type: "input",
+        name: "role id",
+        message: "what is the role ID for this employee?",
+      },
+      {
+        type: "list",
+        name: "role",
+        choices: function () {
+          // Pushing all existing role titles into an array for user to select from
+          const roleArray = [];
+          for (let i = 0; i < res.length; i++) {
+            roleArray.push(res[i].title);
+          }
+          return roleArray;
+        },
+        message: "What is the employee's role?",
+      },
+    ])
+    .then(function (answer) {
+      let roleID;
+      for (let j = 0; j < res.length; j++) {
+        if (res[j].title == answer.role) {
+          roleID = res[j].id;
+        }
+      }
+      mainPrompt();
+    });
+};
 
 const promptAddRole = () => {
   inquirer
