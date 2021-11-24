@@ -25,7 +25,7 @@ const insertDepartment = (department_name) => {
 const insertRole = (role_name, department_id, salary) => {
   console.log("attempting to insert role");
   connection.query(
-    "INSERT INTO role (title, department_id, salary) VALUES (?,?,?)",
+    "INSERT INTO roles (title, department_id, salary) VALUES (?,?,?)",
     [role_name, department_id, salary],
     (error, results) => {
       if (error) console.log({ error: error });
@@ -34,10 +34,22 @@ const insertRole = (role_name, department_id, salary) => {
   );
 };
 
+const getEmployees = () => {
+  return connection
+    .promise()
+    .execute("SELECT * FROM employee")
+    .then((result) => {
+      const rows = result[0];
+      const cols = result[1];
+
+      return rows;
+    });
+};
+
 const getDepartments = () => {
   return connection
     .promise()
-    .execute("SELECT * FROM `department`")
+    .execute("SELECT * FROM department")
     .then((result) => {
       const rows = result[0];
       const cols = result[1];
@@ -45,10 +57,13 @@ const getDepartments = () => {
       return rows;
     });
 };
+
 const getRoles = () => {
   return connection
     .promise()
-    .execute("SELECT * FROM `role`")
+    .execute(
+      "SELECT * FROM roles JOIN department ON department_id = department.id"
+    )
     .then((result) => {
       const rows = result[0];
       const cols = result[1];
@@ -57,9 +72,9 @@ const getRoles = () => {
     });
 };
 
-getRoles().then((depts) => {
-  console.log(depts);
-});
+// getRoles().then((depts) => {
+//   console.log(depts);
+// });
 
 // insertDepartment("Engineering");
 
@@ -108,11 +123,18 @@ const mainPrompt = () => {
         });
       }
       if (answers.action === "View all roles") {
-        getRoles().then((depts) => {
-          console.log(depts);
+        getRoles().then((roles) => {
+          console.log(roles);
           mainPrompt();
         });
       }
+      if (answers.action === "View all employees") {
+        getEmployees().then((employees) => {
+          console.log(employees);
+          mainPrompt();
+        });
+      }
+
       // inquirer.prompt({
       //   type: "list",
       //   name: "beverage",
