@@ -9,6 +9,8 @@ const connection = mysql.createConnection({
   database: "business_db",
 });
 
+// employee sql query
+
 const insertDepartment = (department_name) => {
   connection.query(
     "INSERT INTO department (department_name) VALUES (?)",
@@ -96,7 +98,7 @@ const mainPrompt = () => {
       if (answers.action === "Add Role") {
         promptAddRole();
       }
-      if (answers.action === "Add Employee") {
+      if (answers.action === "Add an employee") {
         promptAddEmployee();
       }
       if (answers.action === "View all departments") {
@@ -122,45 +124,41 @@ const mainPrompt = () => {
 
 mainPrompt();
 
-const promptAddEmployee = () => {
+const promptAddEmployee = async () => {
+  // Get roles
+  const roles = () => {
+    return getRoles().then((roles) => {
+      return roles.map((d) => {
+        return {
+          name: d.title,
+          value: d.id,
+        };
+      });
+    });
+  };
   inquirer
     .prompt([
       {
         type: "input",
-        name: "first name",
+        name: "first_name",
         message: "What is the employee's first name?",
       },
       {
         type: "input",
-        name: "first name",
+        name: "last_name",
         message: "What is the employee's last name?",
-      },
-      {
-        type: "input",
-        name: "role id",
-        message: "what is the role ID for this employee?",
       },
       {
         type: "list",
         name: "role",
-        choices: function () {
-          // Pushing all existing role titles into an array for user to select from
-          const roleArray = [];
-          for (let i = 0; i < res.length; i++) {
-            roleArray.push(res[i].title);
-          }
-          return roleArray;
-        },
+        // should have the roles already present
+        choices: await roles(),
         message: "What is the employee's role?",
       },
     ])
     .then(function (answer) {
-      let roleID;
-      for (let j = 0; j < res.length; j++) {
-        if (res[j].title == answer.role) {
-          roleID = res[j].id;
-        }
-      }
+      // Insert query
+
       mainPrompt();
     });
 };
