@@ -9,7 +9,29 @@ const connection = mysql.createConnection({
   database: "business_db",
 });
 
+const roles = () => {
+  return getRoles().then((roles) => {
+    return roles.map((d) => {
+      return {
+        name: d.title,
+        value: d.id,
+      };
+    });
+  });
+};
+
 // employee sql query
+
+const insertEmployee = (first_name, last_name, role_id, manager_id) => {
+  connection.query(
+    "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)",
+    [first_name, last_name, role_id, manager_id],
+    (error, results) => {
+      if (error) console.log({ error: error });
+      else console.log("employee added!");
+    }
+  );
+};
 
 const insertDepartment = (department_name) => {
   connection.query(
@@ -30,6 +52,18 @@ const insertRole = (role_name, department_id, salary) => {
     (error, results) => {
       if (error) console.log({ error: error });
       else console.log("role added");
+    }
+  );
+};
+
+const updateEmployeesRole = (employee_id, role_id) => {
+  console.log(role_id);
+  connection.query(
+    "UPDATE employee SET role_id = (?) WHERE id = (?);",
+    [role_id, employee_id],
+    (error, results) => {
+      if (error) console.log({ error: error });
+      else console.log("role updated");
     }
   );
 };
@@ -67,7 +101,7 @@ const getRoles = () => {
     .then((result) => {
       const rows = result[0];
       const cols = result[1];
-
+      console.log(result);
       return rows;
     });
 };
@@ -110,6 +144,9 @@ const mainPrompt = () => {
       if (answers.action === "Add department") {
         promptAddDepartment();
       }
+      if (answers.action === "Update employee role") {
+        promptChangeRole();
+      }
       if (answers.action === "Add Role") {
         promptAddRole();
       }
@@ -148,16 +185,6 @@ mainPrompt();
 
 const promptAddEmployee = async () => {
   // Get roles
-  const roles = () => {
-    return getRoles().then((roles) => {
-      return roles.map((d) => {
-        return {
-          name: d.title,
-          value: d.id,
-        };
-      });
-    });
-  };
   inquirer
     .prompt([
       {
@@ -177,10 +204,30 @@ const promptAddEmployee = async () => {
         choices: await roles(),
         message: "What is the employee's role?",
       },
+      {
+        type: "list",
+        name: "manager_id",
+        message: "Which manager do you report to?",
+        choices: function () {
+          return getEmployees().then((employee) => {
+            return employee.map((d) => {
+              return {
+                name: d.first_name + " " + d.last_name,
+                value: d.id,
+              };
+            });
+          });
+        },
+      },
     ])
-    .then(function (answer) {
-      // Insert query
-
+    .then((answers) => {
+      console.log(answers);
+      insertEmployee(
+        answers.first_name,
+        answers.last_name,
+        answers.role,
+        answers.manager_id
+      );
       mainPrompt();
     });
 };
@@ -203,12 +250,6 @@ const promptAddRole = () => {
         name: "department",
         message: "Which department do you wish to add?",
         choices: function () {
-          [
-            {
-              name: "engineering",
-              value: 1,
-            },
-          ];
           return getDepartments().then((depts) => {
             return depts.map((d) => {
               return {
@@ -223,6 +264,48 @@ const promptAddRole = () => {
     .then((answers) => {
       console.log(answers);
       insertRole(answers.role, answers.department, answers.salary);
+      mainPrompt();
+    });
+};
+
+const promptChangeRole = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employee_id",
+        message: "Which employee's role do you wish to change?",
+        choices: function () {
+          return getEmployees().then((employee) => {
+            return employee.map((d) => {
+              return {
+                name: d.first_name + " " + d.last_name,
+                value: d.id,
+              };
+            });
+          });
+        },
+      },
+      {
+        type: "list",
+        name: "role_id",
+        // should have the roles already present
+        choices: function () {
+          return getRoles().then((roles) => {
+            return roles.map((d) => {
+              return {
+                name: d.title,
+                value: d.id,
+              };
+            });
+          });
+        },
+        message: "What is the employee's new role?",
+      },
+    ])
+    .then((answers) => {
+      console.log(answers);
+      updateEmployeesRole(answers.employee_id, answers.role_id);
       mainPrompt();
     });
 };
