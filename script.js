@@ -44,11 +44,11 @@ const insertDepartment = (department_name) => {
   );
 };
 
-const insertRole = (role_name, department_id, salary) => {
+const insertRole = (role_name, salary, department_id) => {
   console.log("attempting to insert role");
   connection.query(
-    "INSERT INTO roles (title, department_id, salary) VALUES (?,?,?)",
-    [role_name, department_id, salary],
+    "INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)",
+    [role_name, salary, department_id],
     (error, results) => {
       if (error) console.log({ error: error });
       else console.log("role added");
@@ -57,7 +57,7 @@ const insertRole = (role_name, department_id, salary) => {
 };
 
 const updateEmployeesRole = (employee_id, role_id) => {
-  console.log(role_id);
+  // console.log(role_id);
   connection.query(
     "UPDATE employee SET role_id = (?) WHERE id = (?);",
     [role_id, employee_id],
@@ -96,12 +96,12 @@ const getRoles = () => {
   return connection
     .promise()
     .execute(
-      "SELECT * FROM roles JOIN department ON department_id = department.id"
+      "SELECT roles.id, roles.salary, roles.title, department.department_name FROM roles JOIN department ON department_id = department.id"
     )
     .then((result) => {
       const rows = result[0];
       const cols = result[1];
-      console.log(result);
+
       return rows;
     });
 };
@@ -263,7 +263,7 @@ const promptAddRole = () => {
     ])
     .then((answers) => {
       console.log(answers);
-      insertRole(answers.role, answers.department, answers.salary);
+      insertRole(answers.role, answers.salary, answers.department);
       mainPrompt();
     });
 };
