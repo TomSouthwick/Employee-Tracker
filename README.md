@@ -6,7 +6,7 @@
     <a href="https://github.com/TomSouthwick/express-server.git"><strong>Explore the repo »</strong></a>
     <br />
     <br />
-    <a href="">View Demo</a>
+    <a href="https://youtu.be/r0_bMJO-EJM">View Demo</a>
     ·
     <a href="https://github.com/TomSouthwick/express-server.git/issues">Report Bug</a>
     ·
